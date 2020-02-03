@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Bargreen.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Bargreen.API.Controllers
 {
@@ -14,28 +15,33 @@ namespace Bargreen.API.Controllers
     [ApiController]
     public class InventoryController : ControllerBase
     {
+        private readonly IInventoryService _inventoryService;
+
+        public InventoryController(IInventoryService inventoryService)
+        {
+           _inventoryService = inventoryService;
+        }
+
         [Route("InventoryBalances")]
         [HttpGet]
-        public IEnumerable<InventoryBalance> GetInventoryBalances()
+        public async Task<IEnumerable<InventoryBalance>> GetInventoryBalances()
         {
-            var inventoryService = new InventoryService();
-            return inventoryService.GetInventoryBalances();
+            return await Task.FromResult(_inventoryService.GetInventoryBalances());
         }
 
         [Route("AccountingBalances")]
         [HttpGet]
-        public IEnumerable<AccountingBalance> GetAccountingBalances()
+        public async Task<IEnumerable<AccountingBalance>> GetAccountingBalances()
         {
-            var inventoryService = new InventoryService();
-            return inventoryService.GetAccountingBalances();
+            return await Task.FromResult(_inventoryService.GetAccountingBalances());
         }
 
         [Route("InventoryReconciliation")]
         [HttpGet]
         public IEnumerable<InventoryReconciliationResult> GetReconciliation()
-        {
-            var inventoryService = new InventoryService();
-            return InventoryService.ReconcileInventoryToAccounting(inventoryService.GetInventoryBalances(), inventoryService.GetAccountingBalances());
+        {        
+            //depend on abstractions(interface), not concretions(instance of object) (SOLID)
+            return InventoryService.ReconcileInventoryToAccounting(_inventoryService.GetInventoryBalances(), _inventoryService.GetAccountingBalances());
         }
     }
 }

@@ -27,4 +27,4 @@ INSERT INTO @accounting VALUES ('xxccM', 7602.75)
 INSERT INTO @accounting VALUES ('fbr77', 17.99)
 
 --TODO-CHALLENGE: Write a query to reconcile matches/differences between the inventory and accounting tables
-SELECT * FROM ...
+(SELECT * FROM @accouting EXCEPT SELECT * FROM @inventory) UNION ALL (SELECT * FROM @inventory EXCEPT SELECT * FROM @accouting)

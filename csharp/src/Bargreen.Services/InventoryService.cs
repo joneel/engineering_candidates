@@ -25,9 +25,15 @@ namespace Bargreen.Services
         public decimal TotalInventoryValue { get; set; }
     }
 
-
-    public class InventoryService
+    public interface IInventoryService
     {
+        IEnumerable<InventoryBalance> GetInventoryBalances();
+        IEnumerable<AccountingBalance> GetAccountingBalances();
+    }
+
+    public class InventoryService : IInventoryService
+    {
+
         public IEnumerable<InventoryBalance> GetInventoryBalances()
         {
             return new List<InventoryBalance>()
@@ -107,7 +113,33 @@ namespace Bargreen.Services
         public static IEnumerable<InventoryReconciliationResult> ReconcileInventoryToAccounting(IEnumerable<InventoryBalance> inventoryBalances, IEnumerable<AccountingBalance> accountingBalances)
         {
             //TODO-CHALLENGE: Compare inventory balances to accounting balances and find differences
-            throw new NotImplementedException();
+//TODO check if null
+//TODO use Dependency Injection instead
+            List<InventoryReconciliationResult> totalReconciles = new List<InventoryReconciliationResult>();
+            InventoryReconciliationResult currResult;
+
+            foreach(AccountingBalance accountingBalance in accountingBalances)
+            {
+                currResult = new InventoryReconciliationResult();//reset currResult for next iteration
+                
+                foreach(InventoryBalance inventoryBalance in inventoryBalances)
+                {
+                    if(inventoryBalance.ItemNumber == accountingBalance.ItemNumber)//if ItemNumber matches
+                    {
+//TODO fix assigning ItemNumber and TotalValueInAccountingBalance multiple times
+                        currResult.ItemNumber = inventoryBalance.ItemNumber;//assign item number to currResult
+                        currResult.TotalValueInAccountingBalance = accountingBalance.TotalInventoryValue;//assign accounting total value to currResult
+                        currResult.TotalValueOnHandInInventory += (inventoryBalance.PricePerItem * inventoryBalance.QuantityOnHand);//sum up totals from different warehouses
+                    }
+                }
+                if(currResult.TotalValueOnHandInInventory != currResult.TotalValueInAccountingBalance)//if balances do not match up, add them to totals to reconcile
+                {
+                    totalReconciles.Add(currResult);
+                }
+            }
+            
+            return totalReconciles;
+            //throw new NotImplementedException();
         }
     }
 }
